@@ -212,8 +212,8 @@ async def analyze_color_palette(image: UploadFile = File(...), num_colors: int =
 async def root():
     return {"Hello": "World"}
 
-def main():
-    uvicorn.run(app, host="0.0.0.0", port=7860)
+# def main():
+#     uvicorn.run(app, host="0.0.0.0", port=7860)
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

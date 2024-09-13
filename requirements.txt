@@ -10,3 +10,4 @@ scikit_learn
 uvicorn
 google-generativeai
 google-ai-generativelanguage
+python-multipart

@@ -15,7 +15,6 @@ from inference_sdk import InferenceHTTPClient
 from sklearn.cluster import KMeans
 
 app = FastAPI()
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 # Setup CORS
 app.add_middleware(
@@ -65,6 +64,12 @@ def process_image(image_file: UploadFile):
     return blob
 
 
+def convert_image_to_base64(img):
+    _, buffer = cv2.imencode('.jpg', img)
+    img_base64 = base64.b64encode(buffer).decode('utf-8')
+    return img_base64
+
+
 @app.post("/analyze_faces")
 async def analyze_faces(image: UploadFile = File(...)):
     try:
@@ -82,8 +87,7 @@ async def analyze_faces(image: UploadFile = File(...)):
             cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
         # Encode image with bounding boxes to base64
-        _, buffer = cv2.imencode('.jpg', img)
-        predicted_image_str = base64.b64encode(buffer).decode('utf-8')
+        predicted_image_str = convert_image_to_base64(img)
 
         return JSONResponse(content={"face_count": len(faces), "predicted_image": predicted_image_str})
     except Exception as e:
@@ -97,12 +101,11 @@ async def analyze_objects(image: UploadFile = File(...)):
         nparr = np.frombuffer(contents, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        # Save the image to a temporary location
-        temp_image_path = "temp_image.jpg"
-        cv2.imwrite(temp_image_path, img)
+        # Convert image to base64
+        img_base64 = convert_image_to_base64(img)
 
         # Infer objects in the image using the model
-        result = CLIENT.infer(temp_image_path, model_id="yolov8n-640")
+        result = CLIENT.infer(img_base64, model_id="yolov8n-640")
 
         # Log the result for debugging
         logging.info(f"Inference result: {result}")
@@ -139,24 +142,39 @@ async def analyze_objects(image: UploadFile = File(...)):
     except Exception as e:
         logging.error(f"Error during object analysis: {str(e)}")
         return JSONResponse(status_code=500, content={"detail": str(e)})
-    
-@app.post("/extract_text")
-async def extract_text(image: UploadFile = File(...)):
+
+@app.post("/blur_sensitive_info")
+async def blur_sensitive_info(image: UploadFile = File(...)):
     try:
         contents = await image.read()
         nparr = np.frombuffer(contents, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        # Convert to RGB for Tesseract
-        rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        # Convert to grayscale and detect faces
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        faces = face_cascade.detectMultiScale(gray_img, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
-        # Perform OCR
-        text = pytesseract.image_to_string(rgb_img)
-        
-        return JSONResponse(content={"extracted_text": text})
+        # Blur detected faces
+        for (x, y, w, h) in faces:
+            # Extract the face from the image
+            face = img[y:y+h, x:x+w]
+
+            # Apply Gaussian blur to the face
+            blurred_face = cv2.GaussianBlur(face, (99, 99), 30)
+
+            # Replace the face with the blurred version in the original image
+            img[y:y+h, x:x+w] = blurred_face
+
+        # Encode the blurred image to base64
+        blurred_image_str = convert_image_to_base64(img)
+
+        return JSONResponse(content={"blurred_image": blurred_image_str, "faces_blurred": len(faces)})
     except Exception as e:
+        logging.error(f"Error during blurring sensitive info: {str(e)}")
         return JSONResponse(status_code=500, content={"detail": str(e)})
-    
+
+
 @app.post("/generate_image_caption")
 async def generate_image_caption(image: UploadFile = File(...)):
     try:
@@ -211,9 +229,3 @@ async def analyze_color_palette(image: UploadFile = File(...), num_colors: int =
 @app.get("/")
 async def root():
     return {"Hello": "World"}
-
-# def main():
-#     uvicorn.run(app, host="0.0.0.0", port=7860)
-
-# if __name__ == "__main__":
-#     main()

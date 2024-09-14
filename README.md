@@ -1,11 +1,9 @@
 ---
 title: FastAPI Image Analysis Tool
-emoji: 🖼️
-colorFrom: blue
-colorTo: green
-sdk: gradio
-sdk_version: 4.44.0
-app_file: app/main.py
+emoji: 🦀
+colorFrom: purple
+colorTo: indigo
+sdk: docker
 pinned: false
 ---
 

@@ -5,7 +5,6 @@ opencv_python
 opencv_python_headless
 Pillow
 protobuf
-pytesseract
 scikit_learn
 uvicorn
 google-generativeai

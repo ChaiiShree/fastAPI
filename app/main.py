@@ -7,7 +7,6 @@ import base64
 import logging
 from PIL import Image
 import io
-import pytesseract
 import google.generativeai as genai
 import google.ai.generativelanguage as glm
 from google.generativeai.types import HarmCategory, HarmBlockThreshold

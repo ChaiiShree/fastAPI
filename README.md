@@ -1,4 +1,13 @@
-<h1 align="center" id="title">FastAPI Image Analysis Tool</h1>
+---
+title: FastAPI Image Analysis Tool
+emoji: 🖼️
+colorFrom: blue
+colorTo: green
+sdk: gradio
+sdk_version: "3.22.1"
+app_file: app.py
+pinned: false
+---
 
 <p align="center"><img src="https://socialify.git.ci/ChaiiShree/fastAPI/image?language=1&amp;name=1&amp;owner=1&amp;pattern=Solid&amp;theme=Dark" alt="project-image"></p>
 

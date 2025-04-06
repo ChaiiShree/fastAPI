@@ -32,4 +32,4 @@ jobs:
          git config --global user.email "sycothic11@gmail.com"
          git config --global user.name "Xendaine99"
          git remote set-url origin https://Xendaine99:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/Xendaine99/fastAPI
-         git push origin main
+         git push --force origin main

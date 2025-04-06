@@ -1,28 +1,35 @@
-name: Deploy to Hugging Face Spaces
+name: deploy
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set up job
+        run: echo "Deploying to Hugging Face Space..."
+
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: "3.10"
 
       - name: Install Hugging Face CLI
         run: pip install huggingface_hub
 
+      - name: Login to Hugging Face
+        run: huggingface-cli login --token ${{ secrets.HF_TOKEN }}
+
       - name: Push to Hugging Face Space
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          huggingface-cli login --token $HF_TOKEN
-          huggingface-cli repo update Xendaine99/fastAPI --repo-type=space --revision main
+          git config --global user.email "sycothic11@gmail.com"
+          git config --global user.name "Xendaine99"
+          git remote set-url origin https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
+          git push origin main
